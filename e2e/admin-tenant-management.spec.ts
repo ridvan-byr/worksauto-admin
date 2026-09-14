@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Super Admin Tenant Management E2E', () => {
   test.beforeEach(async ({ context }) => {
@@ -7,7 +7,8 @@ test.describe('Super Admin Tenant Management E2E', () => {
       {
         name: 'worksauto_admin_session',
         value: '1',
-        url: 'http://localhost:3000',
+        domain: 'localhost',
+        path: '/',
       },
     ]);
 
@@ -17,10 +18,10 @@ test.describe('Super Admin Tenant Management E2E', () => {
         'worksauto_admin_user',
         JSON.stringify({
           id: 'admin_1',
-          name: 'Süper',
-          surname: 'Yönetici',
-          email: 'admin@worksauto.com',
-          phone: '05550000000',
+          name: 'Rıdvan',
+          surname: 'Bayar',
+          email: 'ridvanemrebayar@gmail.com',
+          phone: '05523741500',
           role: 'SUPER_ADMIN',
         })
       );
@@ -56,7 +57,7 @@ test.describe('Super Admin Tenant Management E2E', () => {
             city: 'İstanbul',
             district: 'Kadıköy',
             owner: 'Hasan Yılmaz',
-            ownerPhone: '05321112233',
+            ownerPhone: '05523741500',
             isActive: true,
             createdAt: '2026-01-10T10:00:00.000Z',
             stats: { totalStaff: 6, totalWorkOrders: 120 },
@@ -67,7 +68,7 @@ test.describe('Super Admin Tenant Management E2E', () => {
             city: 'Ankara',
             district: 'Çankaya',
             owner: 'Murat Kara',
-            ownerPhone: '05554443322',
+            ownerPhone: '05523741500',
             isActive: false,
             createdAt: '2026-02-15T12:00:00.000Z',
             stats: { totalStaff: 4, totalWorkOrders: 45 },
