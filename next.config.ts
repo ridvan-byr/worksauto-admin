@@ -38,7 +38,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  assetPrefix: "/admin",
   async redirects() {
     return [
       {
@@ -56,10 +55,6 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const backendBase = (process.env.API_INTERNAL_URL || "http://localhost:4000/api/v1").replace(/\/$/, "");
     return [
-      {
-        source: "/admin/_next/:path*",
-        destination: "/_next/:path*",
-      },
       {
         source: "/api/v1/:path*",
         destination: `${backendBase}/:path*`,
