@@ -7,7 +7,8 @@ test.describe('Super Admin Tenant Management E2E', () => {
       {
         name: 'worksauto_admin_session',
         value: '1',
-        url: 'http://localhost:3000',
+        domain: 'localhost',
+        path: '/',
       },
     ]);
 
@@ -17,8 +18,8 @@ test.describe('Super Admin Tenant Management E2E', () => {
         'worksauto_admin_user',
         JSON.stringify({
           id: 'admin_1',
-          name: 'Süper',
-          surname: 'Yönetici',
+          name: 'Rıdvan',
+          surname: 'Bayar',
           email: 'ridvanemrebayar@gmail.com',
           phone: '05523741500',
           role: 'SUPER_ADMIN',

@@ -25,7 +25,7 @@ export default defineConfig({
     timeout: 120000,
     env: {
       PORT: '3101',
-      HOSTNAME: '127.0.0.1',
+      HOSTNAME: '0.0.0.0',
     },
   },
 });
