@@ -38,6 +38,16 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  allowedDevOrigins: [
+    "admin.worksauto.test",
+    "panel.worksauto.test",
+    "api.worksauto.test",
+    "*.worksauto.test",
+    "admin.localhost",
+    "panel.localhost",
+    "api.localhost",
+    "localhost",
+  ],
   async redirects() {
     return [
       {

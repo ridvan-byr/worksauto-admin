@@ -4,6 +4,8 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 import { Building2, Users, X, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SearchableSelect } from "@/components/ui/searchable-select"
+import { TURKEY_PROVINCES, getDistrictsForProvince } from "@/lib/turkey-locations"
 import { CreateTenantInput } from "@/features/admin/api/use-admin"
 import { formatSmartPhone, formatTaxNumber } from "@/lib/input-formatters"
 import { cn } from "@/lib/utils"
@@ -66,6 +68,20 @@ export function CreateTenantModal({
   const isTaxOfficeValid = React.useMemo(() => {
     return Boolean(form.taxOffice && form.taxOffice.trim().length >= 2)
   }, [form.taxOffice])
+
+  const availableDistricts = React.useMemo(() => {
+    return getDistrictsForProvince(form.city || "")
+  }, [form.city])
+
+  const handleCityChange = (newCity: string) => {
+    const newDistricts = getDistrictsForProvince(newCity)
+    const currentDistrictValid = newDistricts.includes(form.district || "")
+    setForm((prev) => ({
+      ...prev,
+      city: newCity,
+      district: currentDistrictValid ? prev.district : "",
+    }))
+  }
 
   const isFormValid =
     form.title.trim().length > 0 &&
@@ -136,30 +152,31 @@ export function CreateTenantModal({
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Örn: Acar Oto Mekanik Servis"
-                className="w-full h-10 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Resmi Ticari Ünvan</label>
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Resmi Şirket Ünvanı</label>
               <input
                 type="text"
                 value={form.legalName || ""}
                 onChange={(e) => setForm({ ...form, legalName: e.target.value })}
-                placeholder="Örn: Acar Motorlu Araçlar Ltd. Şti."
-                className="w-full h-10 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                placeholder="Örn: Acar Otomotiv San. ve Tic. Ltd. Şti."
+                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
               />
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
-            <h4 className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
-              <Users size={14} />
-              <span>Kurucu Yetkili Bilgileri (Atölye Sahibi)</span>
-            </h4>
+          <div className="p-3.5 rounded-2xl bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 space-y-3">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+              <Users size={13} className="text-sky-500" />
+              <span>İlk Yönetici / Atölye Sahibi</span>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Yetkili Adı *</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Adı *</label>
                 <input
                   type="text"
                   required
@@ -171,13 +188,13 @@ export function CreateTenantModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Yetkili Soyadı *</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Soyadı *</label>
                 <input
                   type="text"
                   required
                   value={form.ownerSurname}
                   onChange={(e) => setForm({ ...form, ownerSurname: e.target.value })}
-                  placeholder="Örn: Acar"
+                  placeholder="Örn: Yılmaz"
                   className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
                 />
               </div>
@@ -185,81 +202,97 @@ export function CreateTenantModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Telefon (SMS Girişi İçin) *</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>Cep Telefonu (Giriş için) *</span>
                   {form.phone && (
-                    <span className={cn("text-[10px] font-medium flex items-center gap-1", isPhoneValid ? "text-emerald-500" : "text-amber-500")}>
-                      {isPhoneValid ? <CheckCircle2 size={11} /> : "En az 10 hane"}
+                    <span className={cn("text-[10px]", isPhoneValid ? "text-emerald-500" : "text-amber-500")}>
+                      {isPhoneValid ? "Geçerli" : "Eksik"}
                     </span>
                   )}
-                </div>
-                <input
-                  type="tel"
-                  required
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: formatSmartPhone(e.target.value) })}
-                  placeholder="05XX XXX XX XX veya +90..."
-                  className={cn(
-                    "w-full h-9 px-3 text-xs rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono transition-colors focus:outline-none focus:ring-2",
-                    form.phone && !isPhoneValid
-                      ? "border-amber-500/50 focus:ring-amber-500/20"
-                      : "border-slate-300 dark:border-slate-700 focus:border-sky-500 focus:ring-sky-500/20"
+                </label>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    required
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: formatSmartPhone(e.target.value) })}
+                    placeholder="0532 000 00 00"
+                    className={cn(
+                      "w-full h-9 px-3 text-xs rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-colors",
+                      form.phone && !isPhoneValid
+                        ? "border-amber-500/50 focus:border-amber-500"
+                        : "border-slate-300 dark:border-slate-700 focus:border-sky-500"
+                    )}
+                  />
+                  {form.phone && isPhoneValid && (
+                    <CheckCircle2 size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none" />
                   )}
-                />
-                {form.phone && !isPhoneValid && (
-                  <p className="text-[10px] text-amber-500">Geçerli bir telefon numarası giriniz (örn: 0532 111 22 33).</p>
-                )}
+                </div>
               </div>
 
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300">E-Posta *</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>E-posta Adresi *</span>
                   {form.email && (
-                    <span className={cn("text-[10px] font-medium flex items-center gap-1", isEmailValid ? "text-emerald-500" : "text-amber-500")}>
-                      {isEmailValid ? <CheckCircle2 size={11} /> : "Geçersiz e-posta"}
+                    <span className={cn("text-[10px]", isEmailValid ? "text-emerald-500" : "text-amber-500")}>
+                      {isEmailValid ? "Geçerli" : "Geçersiz"}
                     </span>
                   )}
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value.trim().toLowerCase() })}
-                  placeholder="ahmet@acaroto.com"
-                  className={cn(
-                    "w-full h-9 px-3 text-xs rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus:outline-none focus:ring-2",
-                    form.email && !isEmailValid
-                      ? "border-amber-500/50 focus:ring-amber-500/20"
-                      : "border-slate-300 dark:border-slate-700 focus:border-sky-500 focus:ring-sky-500/20"
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="ahmet@acarservis.com"
+                    className={cn(
+                      "w-full h-9 px-3 text-xs rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-colors",
+                      form.email && !isEmailValid
+                        ? "border-amber-500/50 focus:border-amber-500"
+                        : "border-slate-300 dark:border-slate-700 focus:border-sky-500"
+                    )}
+                  />
+                  {form.email && isEmailValid && (
+                    <CheckCircle2 size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none" />
                   )}
-                />
-                {form.email && !isEmailValid && (
-                  <p className="text-[10px] text-amber-500">Geçerli bir e-posta formatı giriniz.</p>
-                )}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Şehir</label>
-              <input
-                type="text"
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>Şehir / İl</span>
+                <span className="text-[10px] text-slate-400 font-normal">81 İl</span>
+              </label>
+              <SearchableSelect
+                options={TURKEY_PROVINCES as unknown as string[]}
                 value={form.city || ""}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                placeholder="İstanbul, Ankara, İzmir..."
-                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                onChange={handleCityChange}
+                placeholder="İl seçiniz veya arayınız..."
+                searchPlaceholder="81 il içinde ara..."
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">İlçe</label>
-              <input
-                type="text"
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>İlçe / Semt</span>
+                {form.city && availableDistricts.length > 0 && (
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    {availableDistricts.length} İlçe
+                  </span>
+                )}
+              </label>
+              <SearchableSelect
+                options={availableDistricts}
                 value={form.district || ""}
-                onChange={(e) => setForm({ ...form, district: e.target.value })}
-                placeholder="Başakşehir, Ostim..."
-                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                onChange={(district) => setForm((prev) => ({ ...prev, district }))}
+                disabled={!form.city}
+                disabledMessage="Önce İl Seçiniz"
+                placeholder={form.city ? "İlçe seçiniz veya arayınız..." : "Önce İl Seçiniz"}
+                searchPlaceholder={`${form.city || "İlçe"} ilçelerinde ara...`}
               />
             </div>
           </div>
