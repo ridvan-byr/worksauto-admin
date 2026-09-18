@@ -4,6 +4,8 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 import { X, Building2, AlertCircle, Save, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SearchableSelect } from "@/components/ui/searchable-select"
+import { TURKEY_PROVINCES, getDistrictsForProvince } from "@/lib/turkey-locations"
 import { cn } from "@/lib/utils"
 import type { AdminTenantDetail, UpdateTenantAdminInput } from "../api/use-admin"
 
@@ -56,6 +58,20 @@ export function EditTenantModal({
     }
   }, [tenant])
 
+  const availableDistricts = React.useMemo(() => {
+    return getDistrictsForProvince(form.city || "")
+  }, [form.city])
+
+  const handleCityChange = (newCity: string) => {
+    const newDistricts = getDistrictsForProvince(newCity)
+    const currentDistrictValid = newDistricts.includes(form.district || "")
+    setForm((prev) => ({
+      ...prev,
+      city: newCity,
+      district: currentDistrictValid ? prev.district : "",
+    }))
+  }
+
   const isTaxNumberValid = React.useMemo(() => {
     if (!form.taxNumber || form.taxNumber.trim().length === 0) return true
     const digits = form.taxNumber.replace(/\D/g, "")
@@ -78,7 +94,7 @@ export function EditTenantModal({
         title: form.title?.trim(),
         legalName: form.legalName?.trim() || undefined,
         phone: form.phone?.trim() || undefined,
-        email: form.email?.trim().toLowerCase() || undefined,
+        email: form.email?.trim() || undefined,
         city: form.city?.trim() || undefined,
         district: form.district?.trim() || undefined,
         address: form.address?.trim() || undefined,
@@ -87,13 +103,13 @@ export function EditTenantModal({
       })
       onClose()
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Servis bilgileri güncellenirken hata oluştu."
+      const msg = err instanceof Error ? err.message : "Güncelleme sırasında bir hata oluştu"
       setError(msg)
     }
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in">
       <div className="bg-white dark:bg-[#0c121e] border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl p-6 sm:p-8 space-y-6 shadow-2xl relative max-h-[88vh] overflow-y-auto">
         <button
           type="button"
@@ -106,11 +122,11 @@ export function EditTenantModal({
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 text-xs font-semibold">
             <Building2 size={13} />
-            <span>Servis Yönetimi</span>
+            <span>Servis Bilgilerini Güncelle</span>
           </div>
-          <h2 className="text-xl font-black text-slate-900 dark:text-white">Servis Bilgilerini Düzenle</h2>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white">{tenant.title}</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {tenant.title} işletmesine ait kurumsal, adres ve vergi dairesi/numarası bilgilerini güncelleyin.
+            Servis profil detaylarını, fatura ve adres bilgilerini düzenleyin.
           </p>
         </div>
 
@@ -131,18 +147,18 @@ export function EditTenantModal({
                 value={form.title || ""}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Örn: Acar Oto Mekanik Servis"
-                className="w-full h-10 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Resmi Ticari Ünvan</label>
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Resmi Şirket Ünvanı</label>
               <input
                 type="text"
                 value={form.legalName || ""}
                 onChange={(e) => setForm({ ...form, legalName: e.target.value })}
-                placeholder="Örn: Acar Motorlu Araçlar Ltd. Şti."
-                className="w-full h-10 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                placeholder="Örn: Acar Otomotiv San. ve Tic. Ltd. Şti."
+                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
               />
             </div>
           </div>
@@ -154,17 +170,17 @@ export function EditTenantModal({
                 type="tel"
                 value={form.phone || ""}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="+905321112233"
+                placeholder="0532 000 00 00"
                 className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">E-Posta</label>
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">E-posta</label>
               <input
                 type="email"
                 value={form.email || ""}
-                onChange={(e) => setForm({ ...form, email: e.target.value.trim().toLowerCase() })}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="info@servis.com"
                 className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
               />
@@ -173,24 +189,36 @@ export function EditTenantModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Şehir</label>
-              <input
-                type="text"
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>Şehir / İl</span>
+                <span className="text-[10px] text-slate-400 font-normal">81 İl</span>
+              </label>
+              <SearchableSelect
+                options={TURKEY_PROVINCES as unknown as string[]}
                 value={form.city || ""}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                placeholder="İstanbul, Ankara..."
-                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                onChange={handleCityChange}
+                placeholder="İl seçiniz veya arayınız..."
+                searchPlaceholder="81 il içinde ara..."
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">İlçe</label>
-              <input
-                type="text"
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>İlçe / Semt</span>
+                {form.city && availableDistricts.length > 0 && (
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    {availableDistricts.length} İlçe
+                  </span>
+                )}
+              </label>
+              <SearchableSelect
+                options={availableDistricts}
                 value={form.district || ""}
-                onChange={(e) => setForm({ ...form, district: e.target.value })}
-                placeholder="Başakşehir, Ostim..."
-                className="w-full h-9 px-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
+                onChange={(district) => setForm((prev) => ({ ...prev, district }))}
+                disabled={!form.city}
+                disabledMessage="Önce İl Seçiniz"
+                placeholder={form.city ? "İlçe seçiniz veya arayınız..." : "Önce İl Seçiniz"}
+                searchPlaceholder={`${form.city || "İlçe"} ilçelerinde ara...`}
               />
             </div>
           </div>
