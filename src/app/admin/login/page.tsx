@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Lock, Mail, ArrowRight, Sparkles, AlertCircle } from "lucide-react"
+import { Lock, Mail, ArrowRight, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { BrandLogo } from "@/components/shared/brand-logo"
@@ -25,12 +25,6 @@ export default function AdminLoginPage() {
     }
   }, [router])
 
-  const handleFillDemo = () => {
-    if (process.env.NODE_ENV !== "development") return
-    setEmail("admin@worksauto.com")
-    setPassword("WorksAuto2026!*")
-    setErrorMsg(null)
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,19 +137,7 @@ export default function AdminLoginPage() {
               </Button>
             </form>
 
-            {/* Quick Demo Credentials Autofill (Development Only) */}
-            {process.env.NODE_ENV === "development" && (
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={handleFillDemo}
-                  className="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5 text-[11px] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <Sparkles size={12} className="text-amber-500" />
-                  <span>[DEV] Kurucu Super Admin Bilgilerini Doldur</span>
-                </button>
-              </div>
-            )}
+
           </CardContent>
         </Card>
 
